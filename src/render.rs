@@ -1,12 +1,9 @@
 use std::sync::Arc;
 
-use cgmath::{Matrix4, Point3, SquareMatrix, Vector3, Vector4};
-use itertools::Itertools;
+use cgmath::{Matrix4, SquareMatrix, Vector4};
 use util::{BufferInitDescriptor, DeviceExt};
 use wgpu::*;
 use winit::window::Window;
-
-use crate::camera::Camera;
 
 #[derive(Debug)]
 pub struct Renderer {
@@ -23,8 +20,11 @@ pub struct Renderer {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Uniforms {
+    #[allow(dead_code)]
     model: Matrix4<f32>,
+    #[allow(dead_code)]
     view: Matrix4<f32>,
+    #[allow(dead_code)]
     projection: Matrix4<f32>,
 }
 
