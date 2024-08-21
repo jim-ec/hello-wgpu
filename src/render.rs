@@ -201,6 +201,7 @@ impl Renderer {
 
         let pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: None,
+            cache: None,
             layout: Some(&device.create_pipeline_layout(&PipelineLayoutDescriptor {
                 bind_group_layouts: &[&bind_group_layout],
                 ..Default::default()
