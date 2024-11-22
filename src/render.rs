@@ -208,7 +208,7 @@ impl Renderer {
             })),
             vertex: VertexState {
                 module: &shader_module,
-                entry_point: "vertex",
+                entry_point: None,
                 buffers: &[
                     VertexBufferLayout {
                         array_stride: std::mem::size_of::<Vector4<f32>>() as BufferAddress,
@@ -233,7 +233,7 @@ impl Renderer {
             },
             fragment: Some(FragmentState {
                 module: &shader_module,
-                entry_point: "fragment",
+                entry_point: None,
                 targets: &[Some(ColorTargetState {
                     format: config.format,
                     blend: Some(BlendState::REPLACE),
