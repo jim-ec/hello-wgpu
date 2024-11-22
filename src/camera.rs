@@ -13,6 +13,15 @@ impl Camera {
         let translation = Matrix4::from_translation(Vector3::new(0.0, 0.0, -1.0 * self.radius));
         translation * Matrix4::from(pitch * yaw)
     }
+
+    /// Interpolate between this camera and another camera in a frame-rate independent way.
+    pub fn lerp_exp(&mut self, other: &Self, stiffness: f32, dt: f32) {
+        let rate = -60.0 * (1.0 - stiffness).ln();
+        let interpolant = 1.0 - (-rate * dt).exp();
+        self.yaw += interpolant * (other.yaw - self.yaw);
+        self.pitch += interpolant * (other.pitch - self.pitch);
+        self.radius += interpolant * (other.radius - self.radius);
+    }
 }
 
 impl Default for Camera {

@@ -1,7 +1,7 @@
 mod camera;
 mod render;
 
-use std::{cell::OnceCell, sync::Arc};
+use std::{cell::OnceCell, sync::Arc, time::Instant};
 
 use camera::Camera;
 use render::Renderer;
@@ -19,6 +19,7 @@ struct App {
     renderer: OnceCell<Renderer>,
     camera_smoothed: Camera,
     camera: Camera,
+    last_render_time: Option<Instant>,
 }
 
 impl ApplicationHandler for App {
@@ -49,18 +50,15 @@ impl ApplicationHandler for App {
                 self.window.get().unwrap().request_redraw();
             }
             WindowEvent::RedrawRequested => {
+                let dt = match self.last_render_time {
+                    None => 0.0,
+                    Some(t) => (Instant::now() - t).as_secs_f32(),
+                };
+                self.last_render_time = Some(Instant::now());
+                self.camera_smoothed.lerp_exp(&self.camera, 0.9, dt);
+
                 let renderer = self.renderer.get_mut().unwrap();
-
-                let inverse_smoothness = 0.5;
-                self.camera_smoothed.yaw +=
-                    inverse_smoothness * (self.camera.yaw - self.camera_smoothed.yaw);
-                self.camera_smoothed.pitch +=
-                    inverse_smoothness * (self.camera.pitch - self.camera_smoothed.pitch);
-                self.camera_smoothed.radius +=
-                    inverse_smoothness * (self.camera.radius - self.camera_smoothed.radius);
-
                 renderer.render(self.camera_smoothed.matrix());
-
                 self.window.get().unwrap().request_redraw();
             }
             WindowEvent::CloseRequested => {
