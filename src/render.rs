@@ -74,11 +74,11 @@ impl Renderer {
         let positions: [Vector4<f32>; 36] = [
             // Bottom
             Vector4::new(-1.0, -1.0, -1.0, 1.0),
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
             Vector4::new(-1.0, 1.0, -1.0, 1.0),
+            Vector4::new(1.0, -1.0, -1.0, 1.0),
             Vector4::new(1.0, 1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
             Vector4::new(1.0, -1.0, -1.0, 1.0),
+            Vector4::new(-1.0, 1.0, -1.0, 1.0),
             // Top
             Vector4::new(-1.0, -1.0, 1.0, 1.0),
             Vector4::new(1.0, -1.0, 1.0, 1.0),
@@ -95,18 +95,18 @@ impl Renderer {
             Vector4::new(1.0, -1.0, -1.0, 1.0),
             // Back
             Vector4::new(-1.0, 1.0, -1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
             Vector4::new(-1.0, 1.0, 1.0, 1.0),
+            Vector4::new(1.0, 1.0, -1.0, 1.0),
             Vector4::new(1.0, 1.0, 1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
             Vector4::new(1.0, 1.0, -1.0, 1.0),
+            Vector4::new(-1.0, 1.0, 1.0, 1.0),
             // Left
             Vector4::new(-1.0, -1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
             Vector4::new(-1.0, -1.0, 1.0, 1.0),
+            Vector4::new(-1.0, 1.0, -1.0, 1.0),
             Vector4::new(-1.0, 1.0, 1.0, 1.0),
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
             Vector4::new(-1.0, 1.0, -1.0, 1.0),
+            Vector4::new(-1.0, -1.0, 1.0, 1.0),
             // Right
             Vector4::new(1.0, -1.0, -1.0, 1.0),
             Vector4::new(1.0, 1.0, -1.0, 1.0),
@@ -245,8 +245,7 @@ impl Renderer {
                 topology: PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: FrontFace::Ccw,
-                cull_mode: None,
-                // cull_mode: Some(Face::Back),
+                cull_mode: Some(Face::Back),
                 polygon_mode: PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
