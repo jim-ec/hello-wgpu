@@ -185,25 +185,25 @@ impl Renderer {
             source: ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
         });
 
-        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[BindGroupLayoutEntry {
-                binding: 0,
-                visibility: ShaderStages::VERTEX,
-                ty: BindingType::Buffer {
-                    ty: BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-
         let pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: None,
             cache: None,
             layout: Some(&device.create_pipeline_layout(&PipelineLayoutDescriptor {
-                bind_group_layouts: &[&bind_group_layout],
+                bind_group_layouts: &[&device.create_bind_group_layout(
+                    &BindGroupLayoutDescriptor {
+                        label: None,
+                        entries: &[BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: ShaderStages::VERTEX,
+                            ty: BindingType::Buffer {
+                                ty: BufferBindingType::Uniform,
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
+                        }],
+                    },
+                )],
                 ..Default::default()
             })),
             vertex: VertexState {
@@ -330,15 +330,6 @@ impl Renderer {
             }]),
         );
 
-        let bind_group = self.device.create_bind_group(&BindGroupDescriptor {
-            label: None,
-            layout: &self.pipeline.get_bind_group_layout(0),
-            entries: &[BindGroupEntry {
-                binding: 0,
-                resource: self.uniform_buffer.as_entire_binding(),
-            }],
-        });
-
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
@@ -365,15 +356,22 @@ impl Renderer {
             }),
             ..Default::default()
         });
-        pass.set_bind_group(0, &bind_group, &[]);
-
+        pass.set_bind_group(
+            0,
+            &self.device.create_bind_group(&BindGroupDescriptor {
+                label: None,
+                layout: &self.pipeline.get_bind_group_layout(0),
+                entries: &[BindGroupEntry {
+                    binding: 0,
+                    resource: self.uniform_buffer.as_entire_binding(),
+                }],
+            }),
+            &[],
+        );
         pass.set_vertex_buffer(0, self.vertex_position_buffer.slice(..));
         pass.set_vertex_buffer(1, self.vertex_color_buffer.slice(..));
-
         pass.set_pipeline(&self.pipeline);
-
         pass.draw(0..36, 0..1);
-
         drop(pass);
 
         self.queue.submit(Some(encoder.finish()));
