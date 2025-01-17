@@ -39,7 +39,7 @@ fn as_byte_slice<T>(slice: &[T]) -> &[u8] {
 
 impl Renderer {
     pub async fn new(window: Arc<Window>) -> Self {
-        let instance = Instance::new(InstanceDescriptor::default());
+        let instance = Instance::new(&InstanceDescriptor::default());
         let surface = instance
             .create_surface(window.clone())
             .expect("Cannot create surface");
