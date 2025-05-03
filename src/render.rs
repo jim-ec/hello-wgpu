@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cgmath::{Matrix4, SquareMatrix, Vector4};
+use glam::{Mat4, Vec3A, Vec4};
 use util::{BufferInitDescriptor, DeviceExt};
 use wgpu::*;
 use winit::window::Window;
@@ -21,11 +21,11 @@ pub struct Renderer {
 #[derive(Debug, Copy, Clone)]
 pub struct Uniforms {
     #[allow(dead_code)]
-    model: Matrix4<f32>,
+    model: Mat4,
     #[allow(dead_code)]
-    view: Matrix4<f32>,
+    view: Mat4,
     #[allow(dead_code)]
-    projection: Matrix4<f32>,
+    projection: Mat4,
 }
 
 fn as_byte_slice<T>(slice: &[T]) -> &[u8] {
@@ -71,94 +71,94 @@ impl Renderer {
 
         surface.configure(&device, &config);
 
-        let positions: [Vector4<f32>; 36] = [
+        let positions: [Vec3A; 36] = [
             // Bottom
-            Vector4::new(-1.0, -1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
+            Vec3A::new(-1.0, -1.0, -1.0),
+            Vec3A::new(-1.0, 1.0, -1.0),
+            Vec3A::new(1.0, -1.0, -1.0),
+            Vec3A::new(1.0, 1.0, -1.0),
+            Vec3A::new(1.0, -1.0, -1.0),
+            Vec3A::new(-1.0, 1.0, -1.0),
             // Top
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
-            Vector4::new(1.0, -1.0, 1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
-            Vector4::new(1.0, 1.0, 1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
-            Vector4::new(1.0, -1.0, 1.0, 1.0),
+            Vec3A::new(-1.0, -1.0, 1.0),
+            Vec3A::new(1.0, -1.0, 1.0),
+            Vec3A::new(-1.0, 1.0, 1.0),
+            Vec3A::new(1.0, 1.0, 1.0),
+            Vec3A::new(-1.0, 1.0, 1.0),
+            Vec3A::new(1.0, -1.0, 1.0),
             // Front
-            Vector4::new(-1.0, -1.0, -1.0, 1.0),
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
-            Vector4::new(1.0, -1.0, 1.0, 1.0),
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
+            Vec3A::new(-1.0, -1.0, -1.0),
+            Vec3A::new(1.0, -1.0, -1.0),
+            Vec3A::new(-1.0, -1.0, 1.0),
+            Vec3A::new(1.0, -1.0, 1.0),
+            Vec3A::new(-1.0, -1.0, 1.0),
+            Vec3A::new(1.0, -1.0, -1.0),
             // Back
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
-            Vector4::new(1.0, 1.0, 1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
+            Vec3A::new(-1.0, 1.0, -1.0),
+            Vec3A::new(-1.0, 1.0, 1.0),
+            Vec3A::new(1.0, 1.0, -1.0),
+            Vec3A::new(1.0, 1.0, 1.0),
+            Vec3A::new(1.0, 1.0, -1.0),
+            Vec3A::new(-1.0, 1.0, 1.0),
             // Left
-            Vector4::new(-1.0, -1.0, -1.0, 1.0),
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
-            Vector4::new(-1.0, 1.0, 1.0, 1.0),
-            Vector4::new(-1.0, 1.0, -1.0, 1.0),
-            Vector4::new(-1.0, -1.0, 1.0, 1.0),
+            Vec3A::new(-1.0, -1.0, -1.0),
+            Vec3A::new(-1.0, -1.0, 1.0),
+            Vec3A::new(-1.0, 1.0, -1.0),
+            Vec3A::new(-1.0, 1.0, 1.0),
+            Vec3A::new(-1.0, 1.0, -1.0),
+            Vec3A::new(-1.0, -1.0, 1.0),
             // Right
-            Vector4::new(1.0, -1.0, -1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
-            Vector4::new(1.0, -1.0, 1.0, 1.0),
-            Vector4::new(1.0, 1.0, 1.0, 1.0),
-            Vector4::new(1.0, -1.0, 1.0, 1.0),
-            Vector4::new(1.0, 1.0, -1.0, 1.0),
+            Vec3A::new(1.0, -1.0, -1.0),
+            Vec3A::new(1.0, 1.0, -1.0),
+            Vec3A::new(1.0, -1.0, 1.0),
+            Vec3A::new(1.0, 1.0, 1.0),
+            Vec3A::new(1.0, -1.0, 1.0),
+            Vec3A::new(1.0, 1.0, -1.0),
         ];
 
-        let colors: [Vector4<f32>; 36] = [
+        let colors: [Vec3A; 36] = [
             // Bottom
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
-            Vector4::new(1.0, 0.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 0.0),
+            Vec3A::new(1.0, 0.0, 0.0),
+            Vec3A::new(1.0, 0.0, 0.0),
+            Vec3A::new(1.0, 0.0, 0.0),
+            Vec3A::new(1.0, 0.0, 0.0),
+            Vec3A::new(1.0, 0.0, 0.0),
             // Top
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
-            Vector4::new(0.0, 1.0, 0.0, 1.0),
+            Vec3A::new(0.0, 1.0, 0.0),
+            Vec3A::new(0.0, 1.0, 0.0),
+            Vec3A::new(0.0, 1.0, 0.0),
+            Vec3A::new(0.0, 1.0, 0.0),
+            Vec3A::new(0.0, 1.0, 0.0),
+            Vec3A::new(0.0, 1.0, 0.0),
             // Front
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
-            Vector4::new(0.0, 0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
+            Vec3A::new(0.0, 0.0, 1.0),
             // Back
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
-            Vector4::new(1.0, 1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 1.0, 0.0),
+            Vec3A::new(1.0, 1.0, 0.0),
+            Vec3A::new(1.0, 1.0, 0.0),
+            Vec3A::new(1.0, 1.0, 0.0),
+            Vec3A::new(1.0, 1.0, 0.0),
+            Vec3A::new(1.0, 1.0, 0.0),
             // Left
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
-            Vector4::new(1.0, 0.0, 1.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
+            Vec3A::new(1.0, 0.0, 1.0),
             // Right
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
-            Vector4::new(0.0, 1.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
+            Vec3A::new(0.0, 1.0, 1.0),
         ];
 
         let vertex_position_buffer = device.create_buffer_init(&BufferInitDescriptor {
@@ -211,7 +211,7 @@ impl Renderer {
                 entry_point: None,
                 buffers: &[
                     VertexBufferLayout {
-                        array_stride: std::mem::size_of::<Vector4<f32>>() as BufferAddress,
+                        array_stride: std::mem::size_of::<Vec3A>() as BufferAddress,
                         step_mode: VertexStepMode::Vertex,
                         attributes: &[VertexAttribute {
                             offset: 0,
@@ -220,7 +220,7 @@ impl Renderer {
                         }],
                     },
                     VertexBufferLayout {
-                        array_stride: std::mem::size_of::<Vector4<f32>>() as BufferAddress,
+                        array_stride: std::mem::size_of::<Vec3A>() as BufferAddress,
                         step_mode: VertexStepMode::Vertex,
                         attributes: &[VertexAttribute {
                             offset: 0,
@@ -295,7 +295,7 @@ impl Renderer {
         }
     }
 
-    pub fn render(&mut self, view: Matrix4<f32>) {
+    pub fn render(&mut self, view: Mat4) {
         let surface_texture = self
             .surface
             .get_current_texture()
@@ -311,7 +311,7 @@ impl Renderer {
             &self.uniform_buffer,
             0,
             as_byte_slice(&[Uniforms {
-                model: Matrix4::identity(),
+                model: Mat4::IDENTITY,
                 view,
                 projection: {
                     let fovy = 60.0_f32.to_radians();
@@ -320,11 +320,11 @@ impl Renderer {
 
                     let aspect = self.config.width as f32 / self.config.height as f32;
                     let tan_half_fovy = (0.5 * fovy).tan();
-                    Matrix4::from_cols(
-                        Vector4::new(1.0 / (aspect * tan_half_fovy), 0.0, 0.0, 0.0),
-                        Vector4::new(0.0, 1.0 / tan_half_fovy, 0.0, 0.0),
-                        Vector4::new(0.0, 0.0, -(far + near) / (far - near), -1.0),
-                        Vector4::new(0.0, 0.0, -2.0 * far * near / (far - near), 0.0),
+                    Mat4::from_cols(
+                        Vec4::new(1.0 / (aspect * tan_half_fovy), 0.0, 0.0, 0.0),
+                        Vec4::new(0.0, 1.0 / tan_half_fovy, 0.0, 0.0),
+                        Vec4::new(0.0, 0.0, -(far + near) / (far - near), -1.0),
+                        Vec4::new(0.0, 0.0, -2.0 * far * near / (far - near), 0.0),
                     )
                 },
             }]),

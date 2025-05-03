@@ -7,8 +7,8 @@ struct Uniforms {
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
 struct VertexInput {
-    @location(0) position: vec4<f32>,
-    @location(1) color: vec4<f32>,
+    @location(0) position: vec3<f32>,
+    @location(1) color: vec3<f32>,
 }
 
 struct FragmentInput {
@@ -19,8 +19,8 @@ struct FragmentInput {
 @vertex
 fn vertex(in: VertexInput) -> FragmentInput {
     var out: FragmentInput;
-    out.position = uniforms.projection * uniforms.view * uniforms.model * in.position;
-    out.color = in.color;
+    out.position = uniforms.projection * uniforms.view * uniforms.model * vec4<f32>(in.position, 1.0);
+    out.color = vec4<f32>(in.color, 1.0);
     return out;
 }
 
