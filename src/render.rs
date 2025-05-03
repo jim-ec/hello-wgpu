@@ -71,60 +71,51 @@ impl Renderer {
 
         surface.configure(&device, &config);
 
-        let positions: [Vec3A; 36] = [
-            // Bottom
-            Vec3A::new(-1.0, -1.0, -1.0),
-            Vec3A::new(-1.0, 1.0, -1.0),
-            Vec3A::new(1.0, -1.0, -1.0),
-            Vec3A::new(1.0, 1.0, -1.0),
-            Vec3A::new(1.0, -1.0, -1.0),
-            Vec3A::new(-1.0, 1.0, -1.0),
-            // Top
-            Vec3A::new(-1.0, -1.0, 1.0),
-            Vec3A::new(1.0, -1.0, 1.0),
-            Vec3A::new(-1.0, 1.0, 1.0),
-            Vec3A::new(1.0, 1.0, 1.0),
-            Vec3A::new(-1.0, 1.0, 1.0),
-            Vec3A::new(1.0, -1.0, 1.0),
-            // Front
-            Vec3A::new(-1.0, -1.0, -1.0),
-            Vec3A::new(1.0, -1.0, -1.0),
-            Vec3A::new(-1.0, -1.0, 1.0),
-            Vec3A::new(1.0, -1.0, 1.0),
-            Vec3A::new(-1.0, -1.0, 1.0),
-            Vec3A::new(1.0, -1.0, -1.0),
-            // Back
-            Vec3A::new(-1.0, 1.0, -1.0),
-            Vec3A::new(-1.0, 1.0, 1.0),
-            Vec3A::new(1.0, 1.0, -1.0),
-            Vec3A::new(1.0, 1.0, 1.0),
-            Vec3A::new(1.0, 1.0, -1.0),
-            Vec3A::new(-1.0, 1.0, 1.0),
-            // Left
-            Vec3A::new(-1.0, -1.0, -1.0),
-            Vec3A::new(-1.0, -1.0, 1.0),
-            Vec3A::new(-1.0, 1.0, -1.0),
-            Vec3A::new(-1.0, 1.0, 1.0),
-            Vec3A::new(-1.0, 1.0, -1.0),
-            Vec3A::new(-1.0, -1.0, 1.0),
-            // Right
-            Vec3A::new(1.0, -1.0, -1.0),
-            Vec3A::new(1.0, 1.0, -1.0),
-            Vec3A::new(1.0, -1.0, 1.0),
-            Vec3A::new(1.0, 1.0, 1.0),
-            Vec3A::new(1.0, -1.0, 1.0),
-            Vec3A::new(1.0, 1.0, -1.0),
-        ];
+        let positions: [[_; 6]; 6] = core::array::from_fn(|i| {
+            let sign_i = i >= 3;
 
-        let colors: [[Vec3A; 6]; 6] = [
-            Vec3A::new(1.0, 0.0, 0.0), // Bottom
-            Vec3A::new(0.0, 1.0, 0.0), // Top
-            Vec3A::new(0.0, 0.0, 1.0), // Front
-            Vec3A::new(1.0, 1.0, 0.0), // Back
-            Vec3A::new(1.0, 0.0, 1.0), // Left
-            Vec3A::new(0.0, 1.0, 1.0), // Right
-        ]
-        .map(|color| [color; 6]);
+            let i = i % 3;
+            let j = (i + 1) % 3;
+            let k = (i + 2) % 3;
+
+            fn set_sign_bit(float: &mut f32, sign: bool) {
+                unsafe {
+                    let float = std::mem::transmute::<_, &mut u32>(float);
+                    *float = (*float & !(1 << 31)) | ((!sign as u32) << 31);
+                }
+            }
+
+            // Each cube vertex coordinate is either positive or negative one
+            let mut v = Vec3A::ONE;
+            set_sign_bit(&mut v[i], sign_i);
+
+            // Encoded signs of six vertices, three for each triangle
+            let mut sign_bits_j = 0b010110;
+            let mut sign_bits_k = 0b110100;
+            if !sign_i {
+                // Winding needs to be inverted
+                (sign_bits_k, sign_bits_j) = (sign_bits_j, sign_bits_k);
+            }
+
+            core::array::from_fn(|s| {
+                let sign_bit_j = (sign_bits_j & (1 << s)) != 0;
+                let sign_bit_k = (sign_bits_k & (1 << s)) != 0;
+                set_sign_bit(&mut v[j], sign_bit_j);
+                set_sign_bit(&mut v[k], sign_bit_k);
+                v
+            })
+        });
+
+        let colors: [_; 6] = core::array::from_fn(|i| {
+            let mut v = Vec3A::ZERO;
+            for j in 0..3 {
+                // Add one so we don't start with black
+                if (i + 1) & (1 << j) != 0 {
+                    v[j] = 1.0;
+                }
+            }
+            [v; 6]
+        });
 
         let vertex_position_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: None,
