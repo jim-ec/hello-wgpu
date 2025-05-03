@@ -116,50 +116,15 @@ impl Renderer {
             Vec3A::new(1.0, 1.0, -1.0),
         ];
 
-        let colors: [Vec3A; 36] = [
-            // Bottom
-            Vec3A::new(1.0, 0.0, 0.0),
-            Vec3A::new(1.0, 0.0, 0.0),
-            Vec3A::new(1.0, 0.0, 0.0),
-            Vec3A::new(1.0, 0.0, 0.0),
-            Vec3A::new(1.0, 0.0, 0.0),
-            Vec3A::new(1.0, 0.0, 0.0),
-            // Top
-            Vec3A::new(0.0, 1.0, 0.0),
-            Vec3A::new(0.0, 1.0, 0.0),
-            Vec3A::new(0.0, 1.0, 0.0),
-            Vec3A::new(0.0, 1.0, 0.0),
-            Vec3A::new(0.0, 1.0, 0.0),
-            Vec3A::new(0.0, 1.0, 0.0),
-            // Front
-            Vec3A::new(0.0, 0.0, 1.0),
-            Vec3A::new(0.0, 0.0, 1.0),
-            Vec3A::new(0.0, 0.0, 1.0),
-            Vec3A::new(0.0, 0.0, 1.0),
-            Vec3A::new(0.0, 0.0, 1.0),
-            Vec3A::new(0.0, 0.0, 1.0),
-            // Back
-            Vec3A::new(1.0, 1.0, 0.0),
-            Vec3A::new(1.0, 1.0, 0.0),
-            Vec3A::new(1.0, 1.0, 0.0),
-            Vec3A::new(1.0, 1.0, 0.0),
-            Vec3A::new(1.0, 1.0, 0.0),
-            Vec3A::new(1.0, 1.0, 0.0),
-            // Left
-            Vec3A::new(1.0, 0.0, 1.0),
-            Vec3A::new(1.0, 0.0, 1.0),
-            Vec3A::new(1.0, 0.0, 1.0),
-            Vec3A::new(1.0, 0.0, 1.0),
-            Vec3A::new(1.0, 0.0, 1.0),
-            Vec3A::new(1.0, 0.0, 1.0),
-            // Right
-            Vec3A::new(0.0, 1.0, 1.0),
-            Vec3A::new(0.0, 1.0, 1.0),
-            Vec3A::new(0.0, 1.0, 1.0),
-            Vec3A::new(0.0, 1.0, 1.0),
-            Vec3A::new(0.0, 1.0, 1.0),
-            Vec3A::new(0.0, 1.0, 1.0),
-        ];
+        let colors: [[Vec3A; 6]; 6] = [
+            Vec3A::new(1.0, 0.0, 0.0), // Bottom
+            Vec3A::new(0.0, 1.0, 0.0), // Top
+            Vec3A::new(0.0, 0.0, 1.0), // Front
+            Vec3A::new(1.0, 1.0, 0.0), // Back
+            Vec3A::new(1.0, 0.0, 1.0), // Left
+            Vec3A::new(0.0, 1.0, 1.0), // Right
+        ]
+        .map(|color| [color; 6]);
 
         let vertex_position_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: None,
