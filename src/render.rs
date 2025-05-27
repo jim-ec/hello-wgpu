@@ -46,6 +46,7 @@ impl Renderer {
         let adapter = instance
             .request_adapter(&RequestAdapterOptions {
                 compatible_surface: Some(&surface),
+                power_preference: PowerPreference::HighPerformance,
                 ..Default::default()
             })
             .await
