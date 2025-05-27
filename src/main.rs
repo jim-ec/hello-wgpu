@@ -7,7 +7,7 @@ use camera::Camera;
 use render::Renderer;
 use winit::{
     application::ApplicationHandler,
-    event::{MouseScrollDelta, WindowEvent},
+    event::{DeviceEvent, ElementState, MouseButton, MouseScrollDelta, WindowEvent},
     event_loop::{ActiveEventLoop, EventLoop},
     window::{Window, WindowId},
 };
@@ -19,6 +19,7 @@ struct App {
     camera_smoothed: Camera,
     camera: Camera,
     last_render_time: Option<Instant>,
+    dragging: bool,
 }
 
 impl ApplicationHandler for App {
@@ -47,6 +48,7 @@ impl ApplicationHandler for App {
                 self.renderer.get_mut().unwrap().resize(size);
                 self.window.get().unwrap().request_redraw();
             }
+
             WindowEvent::RedrawRequested => {
                 let dt = match self.last_render_time {
                     None => 0.0,
@@ -59,9 +61,19 @@ impl ApplicationHandler for App {
                 renderer.render(self.camera_smoothed.matrix());
                 self.window.get().unwrap().request_redraw();
             }
+
             WindowEvent::CloseRequested => {
                 event_loop.exit();
             }
+
+            WindowEvent::MouseInput {
+                state,
+                button: MouseButton::Left,
+                ..
+            } => {
+                self.dragging = state == ElementState::Pressed;
+            }
+
             WindowEvent::MouseWheel {
                 delta: MouseScrollDelta::PixelDelta(delta),
                 ..
@@ -69,9 +81,34 @@ impl ApplicationHandler for App {
                 self.camera.yaw += 0.01 * delta.x as f32;
                 self.camera.pitch += 0.01 * delta.y as f32;
             }
+
+            WindowEvent::MouseWheel {
+                delta: MouseScrollDelta::LineDelta(_, delta),
+                ..
+            } => {
+                self.camera.radius /= 1.0 + 0.2 * delta as f32;
+            }
+
             WindowEvent::PinchGesture { delta, .. } => {
                 self.camera.radius /= 1.0 + delta as f32;
             }
+
+            _ => {}
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: winit::event::DeviceId,
+        event: winit::event::DeviceEvent,
+    ) {
+        match event {
+            DeviceEvent::MouseMotion { delta: (x, y) } if self.dragging => {
+                self.camera.yaw += 0.01 * x as f32;
+                self.camera.pitch += 0.01 * y as f32;
+            }
+
             _ => {}
         }
     }
