@@ -36,6 +36,11 @@ impl ApplicationHandler for App {
             .unwrap();
     }
 
+    fn exiting(&mut self, _event_loop: &ActiveEventLoop) {
+        self.renderer.take();
+        self.window.take();
+    }
+
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::Resized(size) => {
