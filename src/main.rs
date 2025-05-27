@@ -9,7 +9,6 @@ use winit::{
     application::ApplicationHandler,
     event::{MouseScrollDelta, WindowEvent},
     event_loop::{ActiveEventLoop, EventLoop},
-    platform::macos::WindowAttributesExtMacOS,
     window::{Window, WindowId},
 };
 
@@ -26,13 +25,7 @@ impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let window = Arc::new(
             event_loop
-                .create_window(
-                    Window::default_attributes()
-                        .with_title(env!("CARGO_PKG_NAME"))
-                        .with_fullsize_content_view(true)
-                        .with_titlebar_transparent(true)
-                        .with_movable_by_window_background(true),
-                )
+                .create_window(Window::default_attributes().with_title(env!("CARGO_PKG_NAME")))
                 .unwrap(),
         );
         self.window.set(window.clone()).unwrap();
