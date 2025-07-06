@@ -1,10 +1,10 @@
 [package]
 name = "hello-wgpu"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-winit = "0.30.10"
-wgpu = "25.0.0"
-futures = "0.3.31"
-glam = "0.30.3"
+winit = "0.30"
+wgpu = "25.0"
+futures = "0.3"
+glam = "0.30"
