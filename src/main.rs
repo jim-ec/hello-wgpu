@@ -66,7 +66,15 @@ impl ApplicationHandler for App {
                 event_loop.exit();
             }
 
-            WindowEvent::MouseInput { state, button, .. } => {
+            WindowEvent::MouseInput {
+                button: MouseButton::Back,
+                state: ElementState::Pressed,
+                ..
+            } => {
+                self.camera.reset();
+            }
+
+            WindowEvent::MouseInput { button, state, .. } => {
                 self.dragging = if state == ElementState::Pressed {
                     Some(button)
                 } else {

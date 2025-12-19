@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use glam::{Mat4, Quat, Vec3};
 
 const STIFFNESS: f32 = 0.5;
@@ -22,6 +24,15 @@ impl Camera {
     pub fn pan(&mut self, rightwards: f32, upwards: f32) {
         let rotation = self.rotation().inverse();
         self.origin += rotation * Vec3::new(rightwards, upwards, 0.0);
+    }
+
+    pub fn reset(&mut self) {
+        let default = Self::default();
+        *self = Self {
+            yaw: TAU * (self.yaw / TAU).round() + default.yaw,
+            pitch: TAU * (self.pitch / TAU).round() + default.pitch,
+            ..default
+        }
     }
 
     pub fn matrix(&self) -> Mat4 {
