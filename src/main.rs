@@ -86,11 +86,11 @@ impl ApplicationHandler for App {
                 delta: MouseScrollDelta::LineDelta(_, delta),
                 ..
             } => {
-                self.camera.zoom(1.0 / (1.0 + 0.2 * delta as f32));
+                self.camera.zoom(-0.2 * delta as f32);
             }
 
             WindowEvent::PinchGesture { delta, .. } => {
-                self.camera.zoom(1.0 / (1.0 + delta as f32));
+                self.camera.zoom(delta as f32);
             }
 
             _ => {}

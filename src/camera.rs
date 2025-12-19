@@ -6,7 +6,7 @@ pub struct Camera {
     origin: Vec3,
     yaw: f32,
     pitch: f32,
-    radius: f32,
+    zoom: f32,
 }
 
 impl Camera {
@@ -15,8 +15,8 @@ impl Camera {
         self.pitch += pitch;
     }
 
-    pub fn zoom(&mut self, factor: f32) {
-        self.radius *= factor;
+    pub fn zoom(&mut self, zoom: f32) {
+        self.zoom += zoom;
     }
 
     pub fn pan(&mut self, rightwards: f32, upwards: f32) {
@@ -26,7 +26,7 @@ impl Camera {
 
     pub fn matrix(&self) -> Mat4 {
         let rotation = Mat4::from_quat(self.rotation());
-        let translation_radius = Mat4::from_translation(Vec3::new(0.0, 0.0, -1.0 * self.radius));
+        let translation_radius = Mat4::from_translation(Vec3::new(0.0, 0.0, -self.zoom.exp()));
         let translation_origin = Mat4::from_translation(self.origin);
         translation_radius * rotation * translation_origin
     }
@@ -44,7 +44,7 @@ impl Camera {
         let interpolant = 1.0 - (-rate * dt).exp();
         self.yaw += interpolant * (other.yaw - self.yaw);
         self.pitch += interpolant * (other.pitch - self.pitch);
-        self.radius += interpolant * (other.radius - self.radius);
+        self.zoom += interpolant * (other.zoom - self.zoom);
         self.origin += interpolant * (other.origin - self.origin);
     }
 }
@@ -55,7 +55,7 @@ impl Default for Camera {
             origin: Vec3::ZERO,
             yaw: 1.0,
             pitch: 0.5,
-            radius: 4.0,
+            zoom: 2.0,
         }
     }
 }
