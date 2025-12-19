@@ -154,6 +154,18 @@ impl ApplicationHandler for App {
             WindowEvent::KeyboardInput {
                 event:
                     KeyEvent {
+                        physical_key: PhysicalKey::Code(KeyCode::Escape),
+                        repeat: false,
+                        ..
+                    },
+                ..
+            } => {
+                event_loop.exit();
+            }
+
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
                         physical_key: PhysicalKey::Code(code),
                         state,
                         repeat: false,
