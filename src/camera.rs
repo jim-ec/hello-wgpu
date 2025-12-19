@@ -4,6 +4,7 @@ use glam::{Mat4, Quat, Vec3};
 
 const STIFFNESS: f32 = 0.5;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Camera {
     origin: Vec3,
     yaw: f32,
@@ -24,6 +25,10 @@ impl Camera {
     pub fn pan(&mut self, rightwards: f32, upwards: f32) {
         let rotation = self.rotation().inverse();
         self.origin += rotation * Vec3::new(rightwards, upwards, 0.0);
+    }
+
+    pub fn translate(&mut self, translation: Vec3) {
+        self.origin += translation;
     }
 
     pub fn reset(&mut self) {

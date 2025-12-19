@@ -1,14 +1,16 @@
 mod camera;
 mod render;
 
-use std::{cell::OnceCell, sync::Arc, time::Instant};
+use std::{cell::OnceCell, collections::HashSet, sync::Arc, time::Instant};
 
 use camera::Camera;
+use glam::Vec3;
 use render::Renderer;
 use winit::{
     application::ApplicationHandler,
-    event::{DeviceEvent, ElementState, MouseButton, MouseScrollDelta, WindowEvent},
+    event::{DeviceEvent, ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent},
     event_loop::{ActiveEventLoop, EventLoop},
+    keyboard::{KeyCode, PhysicalKey},
     window::{Window, WindowId},
 };
 
@@ -20,6 +22,7 @@ struct App {
     camera: Camera,
     last_render_time: Option<Instant>,
     dragging: Option<MouseButton>,
+    pressed_keys: HashSet<KeyCode>,
 }
 
 impl ApplicationHandler for App {
@@ -50,12 +53,55 @@ impl ApplicationHandler for App {
             }
 
             WindowEvent::RedrawRequested => {
-                let dt = match self.last_render_time {
-                    None => 0.0,
-                    Some(t) => (Instant::now() - t).as_secs_f32(),
+                let now = Instant::now();
+                match self.last_render_time {
+                    None => {
+                        self.camera_smoothed = self.camera;
+                    }
+                    Some(t) => {
+                        let dt = (now - t).as_secs_f32();
+
+                        let mut translation = Vec3::ZERO;
+
+                        for (code, anti_code, delta_translation) in [
+                            (KeyCode::KeyW, KeyCode::KeyS, Vec3::Z),
+                            (KeyCode::KeyA, KeyCode::KeyD, Vec3::X),
+                        ] {
+                            let step = self.pressed_keys.contains(&code) as i32
+                                - self.pressed_keys.contains(&anti_code) as i32;
+                            let mut dt = self.camera.rotation().inverse()
+                                * (step as f32 * delta_translation);
+                            dt.y = 0.0;
+                            translation += dt;
+                        }
+
+                        for (code, anti_code, delta_translation) in
+                            [(KeyCode::KeyQ, KeyCode::KeyE, Vec3::Y)]
+                        {
+                            let step = self.pressed_keys.contains(&code) as i32
+                                - self.pressed_keys.contains(&anti_code) as i32;
+                            translation += step as f32 * delta_translation;
+                        }
+
+                        translation = 0.01 * translation.normalize_or_zero();
+
+                        if self.pressed_keys.contains(&KeyCode::ShiftLeft)
+                            || self.pressed_keys.contains(&KeyCode::ShiftRight)
+                        {
+                            translation *= 4.0;
+                        }
+                        if self.pressed_keys.contains(&KeyCode::AltLeft)
+                            || self.pressed_keys.contains(&KeyCode::AltRight)
+                        {
+                            translation /= 4.0;
+                        }
+
+                        self.camera.translate(translation);
+
+                        self.camera_smoothed.lerp_exp(&self.camera, dt);
+                    }
                 };
-                self.last_render_time = Some(Instant::now());
-                self.camera_smoothed.lerp_exp(&self.camera, dt);
+                self.last_render_time = Some(now);
 
                 let renderer = self.renderer.get_mut().unwrap();
                 renderer.render(self.camera_smoothed.matrix());
@@ -82,6 +128,10 @@ impl ApplicationHandler for App {
                 };
             }
 
+            WindowEvent::Focused(false) => {
+                self.dragging = None;
+            }
+
             WindowEvent::MouseWheel {
                 delta: MouseScrollDelta::PixelDelta(delta),
                 ..
@@ -100,6 +150,24 @@ impl ApplicationHandler for App {
             WindowEvent::PinchGesture { delta, .. } => {
                 self.camera.zoom(delta as f32);
             }
+
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        physical_key: PhysicalKey::Code(code),
+                        state,
+                        repeat: false,
+                        ..
+                    },
+                ..
+            } => match state {
+                ElementState::Pressed => {
+                    self.pressed_keys.insert(code);
+                }
+                ElementState::Released => {
+                    self.pressed_keys.remove(&code);
+                }
+            },
 
             _ => {}
         }
