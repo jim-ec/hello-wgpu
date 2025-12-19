@@ -60,7 +60,7 @@ impl Renderer {
             .await
             .unwrap();
 
-        let config = surface
+        let mut config = surface
             .get_default_config(
                 &adapter,
                 window.inner_size().width,
@@ -69,6 +69,7 @@ impl Renderer {
             .expect("Adapter does not support creation of surface");
 
         println!("Surface format: {:?}", config.format);
+        config.present_mode = PresentMode::AutoVsync;
 
         surface.configure(&device, &config);
 

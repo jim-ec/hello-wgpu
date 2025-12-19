@@ -83,7 +83,7 @@ impl ApplicationHandler for App {
                             translation += step as f32 * delta_translation;
                         }
 
-                        translation = 0.01 * translation.normalize_or_zero();
+                        translation = translation.normalize_or_zero();
 
                         if self.pressed_keys.contains(&KeyCode::ShiftLeft)
                             || self.pressed_keys.contains(&KeyCode::ShiftRight)
@@ -95,6 +95,9 @@ impl ApplicationHandler for App {
                         {
                             translation /= 4.0;
                         }
+
+                        translation *= 10.0;
+                        translation *= dt;
 
                         self.camera.translate(translation);
 
