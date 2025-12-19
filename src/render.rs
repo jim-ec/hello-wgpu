@@ -219,7 +219,7 @@ impl Renderer {
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
-            multiview: None,
+            multiview_mask: None,
         });
 
         let depth_texture = device.create_texture(
