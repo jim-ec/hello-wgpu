@@ -19,7 +19,7 @@ struct App {
     camera_smoothed: Camera,
     camera: Camera,
     last_render_time: Option<Instant>,
-    dragging: bool,
+    dragging: Option<MouseButton>,
 }
 
 impl ApplicationHandler for App {
@@ -55,7 +55,7 @@ impl ApplicationHandler for App {
                     Some(t) => (Instant::now() - t).as_secs_f32(),
                 };
                 self.last_render_time = Some(Instant::now());
-                self.camera_smoothed.lerp_exp(&self.camera, 0.9, dt);
+                self.camera_smoothed.lerp_exp(&self.camera, dt);
 
                 let renderer = self.renderer.get_mut().unwrap();
                 renderer.render(self.camera_smoothed.matrix());
@@ -66,31 +66,31 @@ impl ApplicationHandler for App {
                 event_loop.exit();
             }
 
-            WindowEvent::MouseInput {
-                state,
-                button: MouseButton::Left,
-                ..
-            } => {
-                self.dragging = state == ElementState::Pressed;
+            WindowEvent::MouseInput { state, button, .. } => {
+                self.dragging = if state == ElementState::Pressed {
+                    Some(button)
+                } else {
+                    None
+                };
             }
 
             WindowEvent::MouseWheel {
                 delta: MouseScrollDelta::PixelDelta(delta),
                 ..
             } => {
-                self.camera.yaw += 0.01 * delta.x as f32;
-                self.camera.pitch += 0.01 * delta.y as f32;
+                self.camera
+                    .orbit(0.01 * delta.x as f32, 0.01 * delta.y as f32);
             }
 
             WindowEvent::MouseWheel {
                 delta: MouseScrollDelta::LineDelta(_, delta),
                 ..
             } => {
-                self.camera.radius /= 1.0 + 0.2 * delta as f32;
+                self.camera.zoom(1.0 / (1.0 + 0.2 * delta as f32));
             }
 
             WindowEvent::PinchGesture { delta, .. } => {
-                self.camera.radius /= 1.0 + delta as f32;
+                self.camera.zoom(1.0 / (1.0 + delta as f32));
             }
 
             _ => {}
@@ -104,9 +104,16 @@ impl ApplicationHandler for App {
         event: winit::event::DeviceEvent,
     ) {
         match event {
-            DeviceEvent::MouseMotion { delta: (x, y) } if self.dragging => {
-                self.camera.yaw += 0.01 * x as f32;
-                self.camera.pitch += 0.01 * y as f32;
+            DeviceEvent::MouseMotion { delta: (x, y) }
+                if matches!(self.dragging, Some(MouseButton::Left)) =>
+            {
+                self.camera.orbit(0.01 * x as f32, 0.01 * y as f32);
+            }
+
+            DeviceEvent::MouseMotion { delta: (x, y) }
+                if matches!(self.dragging, Some(MouseButton::Right)) =>
+            {
+                self.camera.pan(0.01 * x as f32, -0.01 * y as f32);
             }
 
             _ => {}
