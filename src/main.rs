@@ -151,7 +151,7 @@ impl ApplicationHandler for App {
             }
 
             WindowEvent::PinchGesture { delta, .. } => {
-                self.camera.zoom(delta as f32);
+                self.camera.zoom(-delta as f32);
             }
 
             WindowEvent::KeyboardInput {
