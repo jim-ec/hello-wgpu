@@ -4,7 +4,7 @@ mod render;
 use std::{cell::OnceCell, collections::HashSet, sync::Arc, time::Instant};
 
 use camera::Camera;
-use glam::Vec3;
+use glam::{Mat2, Vec2, Vec3};
 use render::Renderer;
 use winit::{
     application::ApplicationHandler,
@@ -63,24 +63,25 @@ impl ApplicationHandler for App {
 
                         let mut translation = Vec3::ZERO;
 
-                        for (code, anti_code, delta_translation) in [
-                            (KeyCode::KeyW, KeyCode::KeyS, Vec3::Z),
-                            (KeyCode::KeyA, KeyCode::KeyD, Vec3::X),
+                        for (code, anti_code, axis) in [
+                            (KeyCode::KeyD, KeyCode::KeyA, Vec2::X),
+                            (KeyCode::KeyS, KeyCode::KeyW, Vec2::Y),
                         ] {
                             let step = self.pressed_keys.contains(&code) as i32
                                 - self.pressed_keys.contains(&anti_code) as i32;
-                            let mut dt = self.camera.rotation().inverse()
-                                * (step as f32 * delta_translation);
-                            dt.y = 0.0;
-                            translation += dt;
+
+                            let step = dt * step as f32 * axis;
+
+                            let step = Mat2::from_angle(-self.camera.yaw) * step;
+
+                            translation.x += step.x;
+                            translation.z += step.y;
                         }
 
-                        for (code, anti_code, delta_translation) in
-                            [(KeyCode::KeyQ, KeyCode::KeyE, Vec3::Y)]
-                        {
+                        for (code, anti_code, axis) in [(KeyCode::KeyQ, KeyCode::KeyE, Vec3::Y)] {
                             let step = self.pressed_keys.contains(&code) as i32
                                 - self.pressed_keys.contains(&anti_code) as i32;
-                            translation += step as f32 * delta_translation;
+                            translation += step as f32 * axis;
                         }
 
                         translation = translation.normalize_or_zero();
@@ -107,7 +108,7 @@ impl ApplicationHandler for App {
                 self.last_render_time = Some(now);
 
                 let renderer = self.renderer.get_mut().unwrap();
-                renderer.render(self.camera_smoothed.matrix());
+                renderer.render(self.camera_smoothed.matrix().inverse());
                 self.window.get().unwrap().request_redraw();
             }
 
@@ -119,7 +120,8 @@ impl ApplicationHandler for App {
                 button: MouseButton::Back,
                 state: ElementState::Pressed,
                 ..
-            } => {
+            }
+            | WindowEvent::DoubleTapGesture { .. } => {
                 self.camera.reset();
             }
 
@@ -140,7 +142,7 @@ impl ApplicationHandler for App {
                 ..
             } => {
                 self.camera
-                    .orbit(0.01 * delta.x as f32, 0.01 * delta.y as f32);
+                    .orbit(-0.01 * delta.x as f32, -0.01 * delta.y as f32);
             }
 
             WindowEvent::MouseWheel {
@@ -198,7 +200,7 @@ impl ApplicationHandler for App {
             DeviceEvent::MouseMotion { delta: (x, y) }
                 if matches!(self.dragging, Some(MouseButton::Left)) =>
             {
-                self.camera.orbit(0.01 * x as f32, 0.01 * y as f32);
+                self.camera.orbit(-0.01 * x as f32, -0.01 * y as f32);
             }
 
             DeviceEvent::MouseMotion { delta: (x, y) }

@@ -2,14 +2,14 @@ use std::f32::consts::TAU;
 
 use glam::{Mat4, Quat, Vec3};
 
-const STIFFNESS: f32 = 0.5;
+const STIFFNESS: f32 = 0.25;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
-    origin: Vec3,
-    yaw: f32,
-    pitch: f32,
-    zoom: f32,
+    pub origin: Vec3,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub zoom: f32,
 }
 
 impl Camera {
@@ -23,7 +23,7 @@ impl Camera {
     }
 
     pub fn pan(&mut self, rightwards: f32, upwards: f32) {
-        let rotation = self.rotation().inverse();
+        let rotation = self.rotation();
         self.origin += rotation * Vec3::new(rightwards, upwards, 0.0);
     }
 
@@ -41,16 +41,16 @@ impl Camera {
     }
 
     pub fn matrix(&self) -> Mat4 {
-        let rotation = Mat4::from_quat(self.rotation());
-        let translation_radius = Mat4::from_translation(Vec3::new(0.0, 0.0, -self.zoom.exp()));
-        let translation_origin = Mat4::from_translation(self.origin);
-        translation_radius * rotation * translation_origin
+        let m_rotation = Mat4::from_quat(self.rotation());
+        let m_zoom = Mat4::from_translation(Vec3::new(0.0, 0.0, self.zoom.exp()));
+        let m_origin = Mat4::from_translation(self.origin);
+        m_origin * m_rotation * m_zoom
     }
 
     pub fn rotation(&self) -> Quat {
         let yaw = Quat::from_rotation_y(self.yaw);
         let pitch = Quat::from_rotation_x(self.pitch);
-        pitch * yaw
+        yaw * pitch
     }
 
     /// Interpolate between this camera and another camera in a frame-rate independent way.
@@ -70,7 +70,7 @@ impl Default for Camera {
         Camera {
             origin: Vec3::ZERO,
             yaw: 1.0,
-            pitch: 0.5,
+            pitch: -0.5,
             zoom: 2.0,
         }
     }
