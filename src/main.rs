@@ -1,9 +1,10 @@
 mod camera;
 mod render;
 
-use std::{cell::OnceCell, collections::HashSet, sync::Arc, time::Instant};
+use std::{collections::HashSet, sync::Arc, time::Instant};
 
 use camera::Camera;
+use futures::executor::block_on;
 use glam::{Mat2, vec2, vec3};
 use render::Renderer;
 use winit::{
@@ -16,8 +17,8 @@ use winit::{
 
 #[derive(Default)]
 struct App {
-    window: OnceCell<Arc<Window>>,
-    renderer: OnceCell<Renderer>,
+    window: Option<Arc<Window>>,
+    renderer: Option<Renderer>,
     camera_smoothed: Camera,
     camera: Camera,
     last_render_time: Option<Instant>,
@@ -32,12 +33,13 @@ impl ApplicationHandler for App {
                 .create_window(Window::default_attributes().with_title(env!("CARGO_PKG_NAME")))
                 .unwrap(),
         );
-        self.window.set(window.clone()).unwrap();
+        self.window = Some(window.clone());
+        self.renderer = Some(block_on(Renderer::new(window)));
+    }
 
-        let renderer = Renderer::new(window);
-        self.renderer
-            .set(futures::executor::block_on(renderer))
-            .unwrap();
+    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+        self.window.take();
+        self.renderer.take();
     }
 
     fn exiting(&mut self, _event_loop: &ActiveEventLoop) {
@@ -46,10 +48,14 @@ impl ApplicationHandler for App {
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _: WindowId, event: WindowEvent) {
+        let (Some(window), Some(renderer)) = (&self.window, &mut self.renderer) else {
+            return;
+        };
+
         match event {
             WindowEvent::Resized(size) => {
-                self.renderer.get_mut().unwrap().resize(size);
-                self.window.get().unwrap().request_redraw();
+                renderer.resize(size);
+                window.request_redraw();
             }
 
             WindowEvent::RedrawRequested => {
@@ -97,9 +103,8 @@ impl ApplicationHandler for App {
                 };
                 self.last_render_time = Some(now);
 
-                let renderer = self.renderer.get_mut().unwrap();
                 renderer.render(self.camera_smoothed.matrix().inverse());
-                self.window.get().unwrap().request_redraw();
+                window.request_redraw();
             }
 
             WindowEvent::CloseRequested => {
