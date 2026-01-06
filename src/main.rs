@@ -4,7 +4,7 @@ mod render;
 use std::{cell::OnceCell, collections::HashSet, sync::Arc, time::Instant};
 
 use camera::Camera;
-use glam::{Mat2, Vec2, Vec3};
+use glam::{Mat2, vec2, vec3};
 use render::Renderer;
 use winit::{
     application::ApplicationHandler,
@@ -61,46 +61,36 @@ impl ApplicationHandler for App {
                     Some(t) => {
                         let dt = (now - t).as_secs_f32();
 
-                        let mut translation = Vec3::ZERO;
+                        let input_axis = |pos: KeyCode, neg: KeyCode| {
+                            (self.pressed_keys.contains(&pos) as i32
+                                - self.pressed_keys.contains(&neg) as i32)
+                                as f32
+                        };
 
-                        for (code, anti_code, axis) in [
-                            (KeyCode::KeyD, KeyCode::KeyA, Vec2::X),
-                            (KeyCode::KeyS, KeyCode::KeyW, Vec2::Y),
-                        ] {
-                            let step = self.pressed_keys.contains(&code) as i32
-                                - self.pressed_keys.contains(&anti_code) as i32;
-
-                            let step = dt * step as f32 * axis;
-
-                            let step = Mat2::from_angle(-self.camera.yaw) * step;
-
-                            translation.x += step.x;
-                            translation.z += step.y;
-                        }
-
-                        for (code, anti_code, axis) in [(KeyCode::KeyQ, KeyCode::KeyE, Vec3::Y)] {
-                            let step = self.pressed_keys.contains(&code) as i32
-                                - self.pressed_keys.contains(&anti_code) as i32;
-                            translation += step as f32 * axis;
-                        }
-
-                        translation = translation.normalize_or_zero();
-
+                        let mut factor = dt;
+                        factor *= 6.0;
                         if self.pressed_keys.contains(&KeyCode::ShiftLeft)
                             || self.pressed_keys.contains(&KeyCode::ShiftRight)
                         {
-                            translation *= 4.0;
+                            factor *= 2.0;
                         }
                         if self.pressed_keys.contains(&KeyCode::AltLeft)
                             || self.pressed_keys.contains(&KeyCode::AltRight)
                         {
-                            translation /= 4.0;
+                            factor /= 2.0;
                         }
 
-                        translation *= 10.0;
-                        translation *= dt;
+                        let ws = factor * input_axis(KeyCode::KeyD, KeyCode::KeyA);
+                        let ad = factor * input_axis(KeyCode::KeyS, KeyCode::KeyW);
+                        let wasd = factor * vec2(ws, ad).normalize_or_zero();
+                        let zx = factor * input_axis(KeyCode::KeyZ, KeyCode::KeyX);
+                        let qe = factor * input_axis(KeyCode::KeyQ, KeyCode::KeyE);
 
-                        self.camera.translate(translation);
+                        let wasd = Mat2::from_angle(-self.camera.yaw) * wasd;
+
+                        self.camera.translate(vec3(wasd.x, qe, wasd.y));
+
+                        self.camera.orbit(zx, 0.0);
 
                         self.camera_smoothed.lerp_exp(&self.camera, dt);
                     }
